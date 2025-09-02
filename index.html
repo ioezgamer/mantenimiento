@@ -33,6 +33,10 @@
         .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .modal-body-scroll::-webkit-scrollbar { width: 6px; }
+        .modal-body-scroll::-webkit-scrollbar-track { background: #f8fafc; }
+        .modal-body-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+        .modal-body-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -152,70 +156,86 @@
     </div>
 
     <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[95vh]">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">Nuevo Mantenimiento</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <form id="new-maintenance-form">
-  <div class="grid grid-cols-2 gap-4">
-    <div>
-      <label for="equipo">Equipo</label>
-      <select id="equipo" class="w-full p-2 border rounded">
-        <option value="">Seleccionar equipo...</option>
-        <option value="PC-001">PC-001</option>
-        <!-- Agrega más opciones -->
-      </select>
-    </div>
-    <div>
-      <label for="usuario">En uso por</label>
-      <select id="usuario" class="w-full p-2 border rounded">
-        <option value="">Seleccionar usuario...</option>
-        <option value="Juan Pérez">Juan Pérez</option>
-        <!-- Agrega más opciones -->
-      </select>
-    </div>
-    <div>
-      <label for="tipo">Tipo de Mantenimiento</label>
-      <select id="tipo" class="w-full p-2 border rounded">
-        <option value="">Seleccionar tipo...</option>
-        <option value="Preventivo">Preventivo</option>
-        <option value="Correctivo">Correctivo</option>
-        <option value="Predictivo">Predictivo</option>
-      </select>
-    </div>
-    <div>
-      <label for="fechaMantenimiento">Fecha de mantenimiento actual</label>
-      <input type="date" id="fechaMantenimiento" class="w-full p-2 border rounded" required>
-    </div>
-    <div>
-      <label for="fechaProximo">Fecha de próximo mantenimiento</label>
-      <input type="date" id="fechaProximo" class="w-full p-2 border rounded">
-      <small>Se calcula automáticamente (+4 meses)</small>
-    </div>
-    <div>
-      <label for="estado">Estado</label>
-      <select id="estado" class="w-full p-2 border rounded">
-        <option value="">Seleccionar estado...</option>
-        <option value="Completado">Completado</option>
-        <option value="Pendiente">Pendiente</option>
-        <option value="En Progreso">En Progreso</option>
-      </select>
-    </div>
-    <div class="col-span-2">
-      <label for="descripcion">Descripción de tareas</label>
-      <textarea id="descripcion" class="w-full p-2 border rounded"></textarea>
-    </div>
-    <div class="col-span-2">
-      <label for="notas">Notas</label>
-      <textarea id="notas" class="w-full p-2 border rounded"></textarea>
-    </div>
-  </div>
-  <div class="mt-4">
-    <button type="button" id="cancel-maintenance">Cancelar</button>
-    <button type="submit" id="save-maintenance">Guardar</button>
-  </div>
-</form>
+            <form id="new-maintenance-form" class="flex-grow overflow-y-auto p-6 modal-body-scroll">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <!-- Equipo -->
+                    <div class="col-span-1">
+                        <label for="equipo" class="block text-sm font-medium text-gray-700 mb-1">Equipo</label>
+                        <select id="equipo" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                            <option value="">Seleccionar equipo...</option>
+                            <option value="PC-001">PC-001</option>
+                        </select>
+                    </div>
+
+                    <!-- En uso por -->
+                    <div class="col-span-1">
+                        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">En uso por</label>
+                        <select id="usuario" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                            <option value="">Seleccionar usuario...</option>
+                            <option value="Juan Pérez">Juan Pérez</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Tipo de Mantenimiento -->
+                    <div class="col-span-1">
+                        <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Mantenimiento</label>
+                        <select id="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="Preventivo">Preventivo</option>
+                            <option value="Correctivo">Correctivo</option>
+                            <option value="Predictivo">Predictivo</option>
+                        </select>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="col-span-1">
+                        <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="estado" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                            <option value="">Seleccionar estado...</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Progreso">En Progreso</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha de mantenimiento actual -->
+                    <div class="col-span-1">
+                        <label for="fechaMantenimiento" class="block text-sm font-medium text-gray-700 mb-1">Fecha de mantenimiento actual</label>
+                        <input type="date" id="fechaMantenimiento" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                    </div>
+
+                    <!-- Fecha de próximo mantenimiento -->
+                    <div class="col-span-1">
+                        <label for="fechaProximo" class="block text-sm font-medium text-gray-700 mb-1">Fecha de próximo mantenimiento</label>
+                        <input type="date" id="fechaProximo" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-gray-50" readonly>
+                        <small class="text-xs text-gray-500">Se calcula automáticamente (+4 meses)</small>
+                    </div>
+                    
+                    <!-- Descripción de tareas -->
+                    <div class="col-span-2">
+                        <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción de tareas</label>
+                        <textarea id="descripcion" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" placeholder="Detalla las tareas realizadas..."></textarea>
+                    </div>
+                    
+                    <!-- Notas -->
+                    <div class="col-span-2">
+                        <label for="notas" class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                        <textarea id="notas" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" placeholder="Añade cualquier observación adicional..."></textarea>
+                    </div>
+                </div>
+                 <div class="pt-6 border-t border-gray-200 mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors">Cancelar</button>
+                    <button type="submit" id="save-maintenance" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-md">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 <script>
@@ -262,7 +282,7 @@
         }
         
         // Cargar datos al iniciar
-        loadData();
+        document.addEventListener('DOMContentLoaded', loadData);
         
         // Datos de ejemplo para inicializar la base de datos si está vacía
         const sampleData = [
@@ -273,7 +293,7 @@
                 fechaMantenimiento: '2024-01-15',
                 descripcion: 'Limpieza interna, actualización de drivers, verificación de disco duro',
                 estado: 'Completado',
-                fechaProximo: '2024-04-15',
+                fechaProximo: '2024-05-15',
                 notas: 'Equipo en buen estado general'
             },
             {
@@ -283,7 +303,7 @@
                 fechaMantenimiento: '2024-01-20',
                 descripcion: 'Limpieza de ventiladores, optimización de sistema, backup de datos',
                 estado: 'Pendiente',
-                fechaProximo: '2024-04-20',
+                fechaProximo: '2024-05-20',
                 notas: 'Batería al 85% de capacidad'
             }
         ];
@@ -336,7 +356,7 @@
         }
         
         // Intentar inicializar la base de datos después de cargar
-        setTimeout(initializeDatabase, 1000);
+        setTimeout(initializeDatabase, 1500);
         
         // Función para configurar la base de datos manualmente
         async function setupDatabase() {
@@ -398,7 +418,9 @@
             const currentValue = select.value;
             
             // Mantener la opción por defecto
-            select.innerHTML = '<option value="">Seleccionar...</option>';
+            const firstOption = select.options[0];
+            select.innerHTML = '';
+            select.appendChild(firstOption);
             
             values.forEach(value => {
                 const option = document.createElement('option');
@@ -416,33 +438,13 @@
         function calculateNextMaintenanceDate(currentDate) {
             if (!currentDate) return '';
             
-            const date = new Date(currentDate);
+            const date = new Date(currentDate + 'T00:00:00'); // Asegurar que se interprete como local
             date.setMonth(date.getMonth() + 4);
             
             return date.toISOString().split('T')[0];
         }
 
-        function setupDropdownHandlers() {
-            // Manejar selección de equipos
-            document.getElementById('equipo').addEventListener('change', function() {
-                const input = document.getElementById('equipo');
-                if (this.value) {
-                    input.value = this.value;
-                } else {
-                    input.focus();
-                }
-            });
-
-            // Manejar selección de usuarios
-            document.getElementById('usuario').addEventListener('change', function() {
-                const input = document.getElementById('usuario');
-                if (this.value) {
-                    input.value = this.value;
-                } else {
-                    input.focus();
-                }
-            });
-
+        function setupFormHandlers() {
             // Calcular fecha próximo mantenimiento automáticamente
             document.getElementById('fechaMantenimiento').addEventListener('change', function() {
                 const nextDate = calculateNextMaintenanceDate(this.value);
@@ -503,7 +505,7 @@
                         throw new Error('Error al eliminar el mantenimiento');
                     }
                     
-                    // Actualizar la lista local
+                    // Actualizar la lista local y la UI
                     maintenances = maintenances.filter(m => m.id !== id);
                     renderTable();
                     updateStats();
@@ -517,7 +519,8 @@
 
         function getStatusBadge(fechaProximo) {
             const today = new Date();
-            const nextDate = new Date(fechaProximo);
+            today.setHours(0, 0, 0, 0); // Normalizar a medianoche
+            const nextDate = new Date(fechaProximo + 'T00:00:00');
             const diffTime = nextDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -532,7 +535,8 @@
 
         function getStatusClass(fechaProximo) {
             const today = new Date();
-            const nextDate = new Date(fechaProximo);
+            today.setHours(0, 0, 0, 0);
+            const nextDate = new Date(fechaProximo + 'T00:00:00');
             const diffTime = nextDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -547,10 +551,10 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             let filteredMaintenances = maintenances.filter(m => {
-                const matchesSearch = m.equipo.toLowerCase().includes(searchTerm) ||
-                                    m.usuario.toLowerCase().includes(searchTerm) ||
-                                    (m.programa && m.programa.toLowerCase().includes(searchTerm)) ||
-                                    (m.descripcion && m.descripcion.toLowerCase().includes(searchTerm));
+                const matchesSearch = (m.equipo || '').toLowerCase().includes(searchTerm) ||
+                                    (m.usuario || '').toLowerCase().includes(searchTerm) ||
+                                    (m.tipo || '').toLowerCase().includes(searchTerm) ||
+                                    (m.descripcion || '').toLowerCase().includes(searchTerm);
                 
                 const status = getStatusClass(m.fechaProximo);
                 const matchesStatus = !statusFilter || status === statusFilter;
@@ -563,16 +567,16 @@
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">${index + 1}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${m.equipo}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${m.usuario}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${m.tipo || m.programa}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${new Date(m.fechaMantenimiento || m.fechaActual).toLocaleDateString('es-ES')}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.descripcion || m.tareas}">${m.descripcion || m.tareas}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${m.tipo}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${new Date(m.fechaMantenimiento + 'T00:00:00').toLocaleDateString('es-ES')}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.descripcion}">${m.descripcion}</td>
                     <td class="px-4 py-3 text-sm">
                         <div class="flex flex-col">
-                            <span class="text-gray-900">${new Date(m.fechaProximo).toLocaleDateString('es-ES')}</span>
+                            <span class="text-gray-900">${new Date(m.fechaProximo + 'T00:00:00').toLocaleDateString('es-ES')}</span>
                             ${getStatusBadge(m.fechaProximo)}
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${m.estado || m.realizadoPor}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${m.estado}</td>
                     <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.notas}">${m.notas}</td>
                     <td class="px-4 py-3 text-sm">
                         <div class="flex space-x-2">
@@ -590,26 +594,22 @@
 
         function updateStats() {
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
             
             document.getElementById('totalEquipos').textContent = maintenances.length;
             document.getElementById('totalMantenimientos').textContent = maintenances.length;
             
             const proximos = maintenances.filter(m => {
-                const nextDate = new Date(m.fechaProximo);
+                const nextDate = new Date(m.fechaProximo + 'T00:00:00');
                 const diffTime = nextDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return diffDays >= 0 && diffDays <= 7;
             }).length;
             
             const vencidos = maintenances.filter(m => {
-                const nextDate = new Date(m.fechaProximo);
+                const nextDate = new Date(m.fechaProximo + 'T00:00:00');
                 return nextDate < today;
             }).length;
-            
-            // Mantenimientos por estado
-            const completados = maintenances.filter(m => m.estado === 'Completado').length;
-            const pendientes = maintenances.filter(m => m.estado === 'Pendiente').length;
-            const enProgreso = maintenances.filter(m => m.estado === 'En Progreso').length;
             
             document.getElementById('proximosMantenimientos').textContent = proximos;
             document.getElementById('mantenimientosVencidos').textContent = vencidos;
@@ -631,7 +631,7 @@
             };
 
             // Validar campos requeridos
-            if (!formData.equipo || !formData.usuario || !formData.fechaMantenimiento || !formData.fechaProximo) {
+            if (!formData.equipo || !formData.usuario || !formData.tipo || !formData.estado || !formData.fechaMantenimiento || !formData.fechaProximo) {
                 alert('Por favor completa todos los campos requeridos');
                 return;
             }
@@ -656,7 +656,8 @@
                 }
                 
                 if (!response.ok) {
-                    throw new Error('Error al guardar el mantenimiento');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al guardar el mantenimiento');
                 }
                 
                 // Recargar datos desde la API
@@ -664,14 +665,14 @@
                 closeModal();
             } catch (error) {
                 console.error('Error al guardar:', error);
-                alert('Error al guardar el mantenimiento. Por favor, intenta de nuevo.');
+                alert('Error al guardar el mantenimiento: ' + error.message);
             }
         });
 
         document.getElementById('searchInput').addEventListener('input', renderTable);
         document.getElementById('filterStatus').addEventListener('change', renderTable);
 
-        // Cerrar modal al hacer clic fuera
+        // Cerrar modal al hacer clic fuera o en el botón de cancelar
         document.getElementById('modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
@@ -680,7 +681,6 @@
 
         async function exportData() {
             try {
-                // Obtener datos actualizados de la API
                 const response = await fetch(API_URL.GET_ALL);
                 if (!response.ok) {
                     throw new Error('Error al obtener datos para exportar');
@@ -707,71 +707,50 @@
             input.type = 'file';
             input.accept = '.json';
             
-            input.onchange = async e => {
+            input.onchange = e => {
                 const file = e.target.files[0];
-                
-                if (!file) {
-                    return;
-                }
+                if (!file) return;
                 
                 const reader = new FileReader();
-                
                 reader.onload = async function(event) {
                     try {
                         const importedData = JSON.parse(event.target.result);
                         
                         if (Array.isArray(importedData) && importedData.length > 0) {
                             if (confirm(`¿Estás seguro de importar ${importedData.length} registros? Esto reemplazará todos los datos actuales.`)) {
-                                // Mostrar indicador de carga
                                 document.body.style.cursor = 'wait';
                                 
-                                // Eliminar todos los registros existentes y crear los nuevos
                                 try {
-                                    // Usar el nuevo endpoint DELETE_ALL para eliminar todos los registros
                                     const setupKey = prompt('Ingrese la clave de seguridad para confirmar la eliminación de todos los registros:');
                                     if (!setupKey) {
                                         document.body.style.cursor = 'default';
                                         return;
                                     }
                                     
-                                    const deleteResponse = await fetch(`${API_URL.DELETE_ALL}?key=${encodeURIComponent(setupKey)}`, {
-                                        method: 'DELETE'
+                                    const deleteResponse = await fetch(API_URL.DELETE_ALL, {
+                                        method: 'DELETE',
+                                        headers: { 'Authorization': `Bearer ${setupKey}` }
                                     });
                                     
                                     if (!deleteResponse.ok) {
                                         throw new Error('Error al eliminar datos actuales');
                                     }
                                     
-                                    // Crear los nuevos registros
                                     for (const item of importedData) {
-                                        // Eliminar el ID si existe para que la API asigne uno nuevo
                                         const { id, ...dataWithoutId } = item;
-                                        
-                                        // Adaptar el formato si es necesario (para compatibilidad con datos antiguos)
-                                        const newItem = {
-                                            ...dataWithoutId,
-                                            tipo: dataWithoutId.tipo || 'Preventivo',
-                                            fechaMantenimiento: dataWithoutId.fechaMantenimiento || dataWithoutId.fechaActual,
-                                            descripcion: dataWithoutId.descripcion || dataWithoutId.tareas,
-                                            estado: dataWithoutId.estado || 'Completado',
-                                            notas: dataWithoutId.notas || ''
-                                        };
-                                        
                                         await fetch(API_URL.CREATE, {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(newItem)
+                                            body: JSON.stringify(dataWithoutId)
                                         });
                                     }
                                     
-                                    // Recargar datos
                                     await loadData();
                                     alert('Datos importados correctamente');
                                 } catch (error) {
                                     console.error('Error al importar datos:', error);
                                     alert('Error al importar los datos: ' + error.message);
                                 } finally {
-                                    // Restaurar cursor
                                     document.body.style.cursor = 'default';
                                 }
                             }
@@ -789,11 +768,8 @@
             input.click();
         }
         
-        // Inicializar
-        populateDropdowns();
-        setupDropdownHandlers();
-        renderTable();
-        updateStats();
+        // Inicializar manejadores del formulario
+        setupFormHandlers();
     </script>
-<!-- Script de Cloudflare eliminado para evitar problemas en Netlify --></body>
+</body>
 </html>

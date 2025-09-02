@@ -1,22 +1,25 @@
-import { query } from "./utils/db.js"; // Cambia require a import por ES Modules
+// Corregido: Cambiado a require para mantener consistencia con otros archivos
+const { query } = require("./utils/db.js");
 
 exports.handler = async (event, context) => {
   try {
-    // Consultar todos los mantenimientos en la tabla
+    // Corregido: Usar nombre de columna 'fecha_mantenimiento' en ORDER BY
     const response = await query(
-      "SELECT * FROM maintenances ORDER BY fechaMantenimiento DESC"
+      "SELECT * FROM maintenances ORDER BY fecha_mantenimiento DESC"
     );
 
     // Formatear los datos para la respuesta
+    // Corregido: Mapear columnas snake_case de la BD a camelCase para el frontend
     const maintenances = response.rows.map((item) => ({
       id: item.id,
       equipo: item.equipo,
       tipo: item.tipo,
-      fechaMantenimiento: item.fechaMantenimiento,
+      fechaMantenimiento: item.fecha_mantenimiento,
       descripcion: item.descripcion,
       estado: item.estado,
       usuario: item.usuario,
-      fechaProximo: item.fechaProximo,
+      fechaProximo: item.proximo_mantenimiento,
+      notas: item.notas,
     }));
 
     return {
@@ -27,7 +30,7 @@ exports.handler = async (event, context) => {
       },
     };
   } catch (error) {
-    console.error("Error al obtener mantenimientos:", error.stack); // Añade stack para debug
+    console.error("Error al obtener mantenimientos:", error.stack);
     return {
       statusCode: 500,
       body: JSON.stringify({
