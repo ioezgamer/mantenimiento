@@ -631,7 +631,7 @@
             };
 
             // Validar campos requeridos
-            if (!formData.equipo || !formData.usuario || !formData.tipo || !formData.estado || !formData.fechaMantenimiento || !formData.fechaProximo) {
+            if (!formData.equipo || !formData.usuario || !formData.fechaMantenimiento || !formData.fechaProximo) {
                 alert('Por favor completa todos los campos requeridos');
                 return;
             }
@@ -656,8 +656,7 @@
                 }
                 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al guardar el mantenimiento');
+                    throw new Error('Error al guardar el mantenimiento');
                 }
                 
                 // Recargar datos desde la API
@@ -665,7 +664,7 @@
                 closeModal();
             } catch (error) {
                 console.error('Error al guardar:', error);
-                alert('Error al guardar el mantenimiento: ' + error.message);
+                alert('Error al guardar el mantenimiento. Por favor, intenta de nuevo.');
             }
         });
 

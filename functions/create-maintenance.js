@@ -1,5 +1,5 @@
 // Corregido: Importar desde 'db.js' en lugar de 'neon.js'
-const { query } = require("./utils/db.js");
+const { query } = require("./utils/neon.js");
 
 exports.handler = async (event, context) => {
   try {
@@ -21,8 +21,7 @@ exports.handler = async (event, context) => {
       !data.tipo ||
       !data.fechaMantenimiento ||
       !data.estado ||
-      !data.usuario ||
-      !data.fechaProximo
+      !data.usuario
     ) {
       return {
         statusCode: 400,
@@ -32,11 +31,10 @@ exports.handler = async (event, context) => {
     }
 
     // Crear el registro en Neon DB
-    // Corregido: Nombres de columna a snake_case (ej. fecha_mantenimiento) para coincidir con la base de datos
     const result = await query(
       `INSERT INTO maintenances 
-      (equipo, tipo, fecha_mantenimiento, descripcion, estado, usuario, proximo_mantenimiento, notas) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      (equipo, tipo, fechaMantenimiento, descripcion, estado, usuario, fechaProximo) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7) 
       RETURNING *`,
       [
         data.equipo,
@@ -45,32 +43,29 @@ exports.handler = async (event, context) => {
         data.descripcion || "",
         data.estado,
         data.usuario,
-        data.fechaProximo,
-        data.notas || "",
+        data.fechaProximo || null, // Maneja si no se envía
       ]
     );
 
     const newItem = result.rows[0];
 
     // Devolver el registro creado con su ID
-    // Corregido: Mapear columnas snake_case de la BD a camelCase para el frontend
     return {
       statusCode: 201,
       body: JSON.stringify({
         id: newItem.id,
         equipo: newItem.equipo,
         tipo: newItem.tipo,
-        fechaMantenimiento: newItem.fecha_mantenimiento,
+        fechaMantenimiento: newItem.fechaMantenimiento,
         descripcion: newItem.descripcion,
         estado: newItem.estado,
         usuario: newItem.usuario,
-        fechaProximo: newItem.proximo_mantenimiento,
-        notas: newItem.notas,
+        fechaProximo: newItem.fechaProximo,
       }),
       headers: { "Content-Type": "application/json" },
     };
   } catch (error) {
-    console.error("Error al crear mantenimiento:", error.stack);
+    console.error("Error al crear mantenimiento:", error.stack); // Añade stack para debug
     return {
       statusCode: 500,
       body: JSON.stringify({
