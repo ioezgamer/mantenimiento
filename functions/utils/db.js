@@ -1,25 +1,21 @@
-const { Pool } = require('pg');
+// functions/utils/db.js
+const { Pool } = require("pg");
 
-// Configuración de la conexión a Neon DB
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Necesario para conexiones SSL a Neon DB
-  }
+  ssl: { rejectUnauthorized: false },
 });
 
-// Función para ejecutar consultas SQL
 async function query(text, params) {
   const client = await pool.connect();
   try {
     const result = await client.query(text, params);
-    return result;
+    return { rows: result.rows }; // Cambia para devolver solo { rows }
   } finally {
     client.release();
   }
 }
 
-// Función para inicializar la base de datos
 async function setupDatabase() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS maintenances (
@@ -34,18 +30,18 @@ async function setupDatabase() {
       notas TEXT
     );
   `;
-  
+
   try {
     await query(createTableQuery);
-    console.log('Base de datos inicializada correctamente');
-    return { success: true, message: 'Base de datos inicializada correctamente' };
+    console.log("Base de datos inicializada correctamente");
+    return {
+      success: true,
+      message: "Base de datos inicializada correctamente",
+    };
   } catch (error) {
-    console.error('Error al inicializar la base de datos:', error);
+    console.error("Error al inicializar la base de datos:", error);
     return { success: false, error: error.message };
   }
 }
 
-module.exports = {
-  query,
-  setupDatabase
-};
+module.exports = { query, setupDatabase };
