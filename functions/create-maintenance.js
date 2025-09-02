@@ -1,13 +1,13 @@
-const { query } = require('./utils/db');
+import { query } from "./utils/db.js"; // Cambia require a import por ES Modules
 
 exports.handler = async (event, context) => {
   try {
     // Verificar que el método sea POST
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
-        body: JSON.stringify({ error: 'Método no permitido' }),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({ error: "Método no permitido" }),
+        headers: { "Content-Type": "application/json" },
       };
     }
 
@@ -15,28 +15,34 @@ exports.handler = async (event, context) => {
     const data = JSON.parse(event.body);
 
     // Validar datos requeridos
-    if (!data.equipo || !data.tipo || !data.fechaMantenimiento || !data.estado || !data.usuario) {
+    if (
+      !data.equipo ||
+      !data.tipo ||
+      !data.fechaMantenimiento ||
+      !data.estado ||
+      !data.usuario
+    ) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Faltan campos requeridos' }),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({ error: "Faltan campos requeridos" }),
+        headers: { "Content-Type": "application/json" },
       };
     }
 
     // Crear el registro en Neon DB
     const result = await query(
       `INSERT INTO maintenances 
-      (equipo, tipo, fecha_mantenimiento, descripcion, estado, usuario, proximo_mantenimiento) 
+      (equipo, tipo, fechaMantenimiento, descripcion, estado, usuario, fechaProximo) 
       VALUES ($1, $2, $3, $4, $5, $6, $7) 
       RETURNING *`,
       [
         data.equipo,
         data.tipo,
         data.fechaMantenimiento,
-        data.descripcion || '',
+        data.descripcion || "",
         data.estado,
         data.usuario,
-        data.fechaProximo
+        data.fechaProximo || null, // Maneja si no se envía
       ]
     );
 
@@ -49,20 +55,23 @@ exports.handler = async (event, context) => {
         id: newItem.id,
         equipo: newItem.equipo,
         tipo: newItem.tipo,
-        fechaMantenimiento: newItem.fecha_mantenimiento,
+        fechaMantenimiento: newItem.fechaMantenimiento,
         descripcion: newItem.descripcion,
         estado: newItem.estado,
         usuario: newItem.usuario,
-        fechaProximo: newItem.proximo_mantenimiento
+        fechaProximo: newItem.fechaProximo,
       }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     };
   } catch (error) {
-    console.error('Error al crear mantenimiento:', error);
+    console.error("Error al crear mantenimiento:", error.stack); // Añade stack para debug
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error al crear el mantenimiento', details: error.message }),
-      headers: { 'Content-Type': 'application/json' }
+      body: JSON.stringify({
+        error: "Error al crear el mantenimiento",
+        details: error.message,
+      }),
+      headers: { "Content-Type": "application/json" },
     };
   }
 };
