@@ -218,8 +218,7 @@
 </form>
         </div>
     </div>
-<script src="/assets/js/script.js" defer></script>
-    <script>
+<script>
         let maintenances = [];
         let editingId = null;
         
@@ -388,10 +387,10 @@
         function populateDropdowns() {
             const uniqueValues = getUniqueValues();
             
-            populateSelect('equipoSelect', uniqueValues.equipos);
-            populateSelect('usuarioSelect', uniqueValues.usuarios);
-            populateSelect('tipoSelect', uniqueValues.tipos);
-            populateSelect('estadoSelect', uniqueValues.estados);
+            populateSelect('equipo', uniqueValues.equipos);
+            populateSelect('usuario', uniqueValues.usuarios);
+            populateSelect('tipo', uniqueValues.tipos);
+            populateSelect('estado', uniqueValues.estados);
         }
 
         function populateSelect(selectId, values) {
@@ -425,40 +424,27 @@
 
         function setupDropdownHandlers() {
             // Manejar selección de equipos
-            document.getElementById('equipoSelect').addEventListener('change', function() {
-                const input = document.getElementById('equipoInput');
+            document.getElementById('equipo').addEventListener('change', function() {
+                const input = document.getElementById('equipo');
                 if (this.value) {
                     input.value = this.value;
-                    input.style.display = 'none';
                 } else {
-                    input.style.display = 'block';
                     input.focus();
                 }
             });
 
             // Manejar selección de usuarios
-            document.getElementById('usuarioSelect').addEventListener('change', function() {
-                const input = document.getElementById('usuarioInput');
+            document.getElementById('usuario').addEventListener('change', function() {
+                const input = document.getElementById('usuario');
                 if (this.value) {
                     input.value = this.value;
-                    input.style.display = 'none';
                 } else {
-                    input.style.display = 'block';
                     input.focus();
                 }
             });
 
-            // Mostrar input cuando se hace clic en él
-            document.getElementById('equipoInput').addEventListener('focus', function() {
-                document.getElementById('equipoSelect').value = '';
-            });
-
-            document.getElementById('usuarioInput').addEventListener('focus', function() {
-                document.getElementById('usuarioSelect').value = '';
-            });
-
             // Calcular fecha próximo mantenimiento automáticamente
-            document.getElementById('fechaActual').addEventListener('change', function() {
+            document.getElementById('fechaMantenimiento').addEventListener('change', function() {
                 const nextDate = calculateNextMaintenanceDate(this.value);
                 document.getElementById('fechaProximo').value = nextDate;
             });
@@ -467,7 +453,7 @@
         function openModal(id = null) {
             editingId = id ? parseInt(id) : null;
             const modal = document.getElementById('modal');
-            const form = document.getElementById('maintenanceForm');
+            const form = document.getElementById('new-maintenance-form');
             const title = document.getElementById('modalTitle');
             
             // Actualizar dropdowns con datos actuales
@@ -478,44 +464,20 @@
                 title.textContent = 'Editar Mantenimiento';
                 
                 // Llenar selects y inputs
-                document.getElementById('equipoSelect').value = maintenance.equipo;
-                document.getElementById('equipoInput').value = maintenance.equipo;
-                document.getElementById('equipoInput').style.display = maintenance.equipo ? 'none' : 'block';
-                
-                document.getElementById('usuarioSelect').value = maintenance.usuario;
-                document.getElementById('usuarioInput').value = maintenance.usuario;
-                document.getElementById('usuarioInput').style.display = maintenance.usuario ? 'none' : 'block';
-                
-                document.getElementById('tipoSelect').value = maintenance.tipo;
-                
-                document.getElementById('fechaActual').value = maintenance.fechaMantenimiento;
+                document.getElementById('equipo').value = maintenance.equipo;
+                document.getElementById('usuario').value = maintenance.usuario;
+                document.getElementById('tipo').value = maintenance.tipo;
+                document.getElementById('fechaMantenimiento').value = maintenance.fechaMantenimiento;
                 document.getElementById('descripcion').value = maintenance.descripcion;
                 document.getElementById('fechaProximo').value = maintenance.fechaProximo;
-                document.getElementById('estadoSelect').value = maintenance.estado;
+                document.getElementById('estado').value = maintenance.estado;
                 document.getElementById('notas').value = maintenance.notas;
             } else {
                 title.textContent = 'Nuevo Mantenimiento';
                 form.reset();
                 
-                // Resetear selects e inputs
-                document.getElementById('equipoSelect').value = '';
-                document.getElementById('usuarioSelect').value = '';
-                document.getElementById('programaSelect').value = '';
-                document.getElementById('realizadoPorSelect').value = '';
-                
-                document.getElementById('equipoInput').value = '';
-                document.getElementById('usuarioInput').value = '';
-                document.getElementById('programaInput').value = '';
-                document.getElementById('realizadoPorInput').value = '';
-                
-                // Mostrar todos los inputs
-                document.getElementById('equipoInput').style.display = 'block';
-                document.getElementById('usuarioInput').style.display = 'block';
-                document.getElementById('programaInput').style.display = 'block';
-                document.getElementById('realizadoPorInput').style.display = 'block';
-                
                 const today = new Date().toISOString().split('T')[0];
-                document.getElementById('fechaActual').value = today;
+                document.getElementById('fechaMantenimiento').value = today;
                 document.getElementById('fechaProximo').value = calculateNextMaintenanceDate(today);
             }
             
@@ -654,22 +616,22 @@
         }
 
         // Event Listeners
-        document.getElementById('maintenanceForm').addEventListener('submit', async function(e) {
+        document.getElementById('new-maintenance-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = {
-                equipo: document.getElementById('equipoInput').value || document.getElementById('equipoSelect').value,
-                usuario: document.getElementById('usuarioInput').value || document.getElementById('usuarioSelect').value,
-                tipo: document.getElementById('tipoSelect').value,
-                fechaMantenimiento: document.getElementById('fechaActual').value,
+                equipo: document.getElementById('equipo').value,
+                usuario: document.getElementById('usuario').value,
+                tipo: document.getElementById('tipo').value,
+                fechaMantenimiento: document.getElementById('fechaMantenimiento').value,
                 descripcion: document.getElementById('descripcion').value,
                 fechaProximo: document.getElementById('fechaProximo').value,
-                estado: document.getElementById('estadoSelect').value,
+                estado: document.getElementById('estado').value,
                 notas: document.getElementById('notas').value
             };
 
             // Validar campos requeridos
-            if (!formData.equipo || !formData.usuario || !formData.fechaActual || !formData.fechaProximo || !formData.realizadoPor) {
+            if (!formData.equipo || !formData.usuario || !formData.fechaMantenimiento || !formData.fechaProximo) {
                 alert('Por favor completa todos los campos requeridos');
                 return;
             }
