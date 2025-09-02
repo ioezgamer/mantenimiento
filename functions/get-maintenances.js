@@ -7,8 +7,7 @@ exports.handler = async (event, context) => {
       "SELECT * FROM maintenances ORDER BY fechamantenimiento DESC"
     );
 
-    // Formatear los datos para la respuesta
-    // CORREGIDO: Mapear columnas snake_case de la BD a camelCase para el frontend
+    // Mapear columnas de la BD (snake_case) a camelCase para el frontend
     const maintenances = response.rows.map((item) => ({
       id: item.id,
       equipo: item.equipo,

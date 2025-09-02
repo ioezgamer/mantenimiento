@@ -1,9 +1,7 @@
-// Corregido: Importar desde 'db.js' en lugar de 'neon.js'
 const { query } = require("./utils/db.js");
 
 exports.handler = async (event, context) => {
   try {
-    // Verificar que el método sea POST
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -12,10 +10,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Obtener los datos del cuerpo de la solicitud
     const data = JSON.parse(event.body);
 
-    // Validar datos requeridos
     if (
       !data.equipo ||
       !data.tipo ||
@@ -31,8 +27,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Crear el registro en Neon DB
-    // CORREGIDO: Nombres de columna a snake_case para coincidir con la base de datos
+    // CORREGIDO: Nombres de columna coinciden con la tabla de la base de datos (ej. fechamantenimiento, fechaproximo)
     const result = await query(
       `INSERT INTO maintenances 
       (equipo, tipo, fechamantenimiento, descripcion, estado, usuario, fechaproximo, notas) 
@@ -52,8 +47,7 @@ exports.handler = async (event, context) => {
 
     const newItem = result.rows[0];
 
-    // Devolver el registro creado con su ID
-    // CORREGIDO: Mapear columnas snake_case de la BD a camelCase para el frontend
+    // Mapear columnas de la BD (snake_case) a camelCase para el frontend
     return {
       statusCode: 201,
       body: JSON.stringify({

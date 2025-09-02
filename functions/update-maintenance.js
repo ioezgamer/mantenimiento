@@ -2,7 +2,6 @@ const { query } = require("./utils/db");
 
 exports.handler = async (event, context) => {
   try {
-    // Verificar que el método sea PUT
     if (event.httpMethod !== "PUT") {
       return {
         statusCode: 405,
@@ -11,7 +10,6 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Obtener el ID del mantenimiento de los parámetros de la ruta
     const id = event.path.split("/").pop();
     if (!id) {
       return {
@@ -21,10 +19,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Obtener los datos del cuerpo de la solicitud
     const data = JSON.parse(event.body);
 
-    // Validar datos requeridos
     if (
       !data.equipo ||
       !data.tipo ||
@@ -39,26 +35,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Verificar si el mantenimiento existe
-    const checkResult = await query(
-      "SELECT id FROM maintenances WHERE id = $1",
-      [id]
-    );
-    if (checkResult.rows.length === 0) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: "Mantenimiento no encontrado" }),
-        headers: { "Content-Type": "application/json" },
-      };
-    }
-
-    // Actualizar el registro en Neon DB
-    // CORREGIDO: Nombres de columna a snake_case para coincidir con la base de datos
+    // CORREGIDO: Nombres de columna coinciden con la BD y se elimina 'updated_at' que no existe en la tabla
     const result = await query(
       `UPDATE maintenances 
       SET equipo = $1, tipo = $2, fechamantenimiento = $3, descripcion = $4, 
-          estado = $5, usuario = $6, fechaproximo = $7, notas = $8,
-          updated_at = CURRENT_TIMESTAMP 
+          estado = $5, usuario = $6, fechaproximo = $7, notas = $8
       WHERE id = $9
       RETURNING *`,
       [
@@ -74,10 +55,19 @@ exports.handler = async (event, context) => {
       ]
     );
 
+    if (result.rows.length === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          error: "Mantenimiento no encontrado para actualizar",
+        }),
+        headers: { "Content-Type": "application/json" },
+      };
+    }
+
     const updatedItem = result.rows[0];
 
-    // Devolver el registro actualizado
-    // CORREGIDO: Mapear columnas snake_case de la BD a camelCase para el frontend
+    // Mapear columnas de la BD (snake_case) a camelCase para el frontend
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -95,7 +85,6 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error("Error al actualizar mantenimiento:", error);
-
     return {
       statusCode: 500,
       body: JSON.stringify({
