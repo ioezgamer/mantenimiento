@@ -1,24 +1,23 @@
-// Corregido: Cambiado a require para mantener consistencia con otros archivos
 const { query } = require("./utils/db.js");
 
 exports.handler = async (event, context) => {
   try {
-    // Corregido: Usar nombre de columna 'fecha_mantenimiento' en ORDER BY
+    // CORREGIDO: Usar nombre de columna 'fechamantenimiento' en ORDER BY
     const response = await query(
-      "SELECT * FROM maintenances ORDER BY fecha_mantenimiento DESC"
+      "SELECT * FROM maintenances ORDER BY fechamantenimiento DESC"
     );
 
     // Formatear los datos para la respuesta
-    // Corregido: Mapear columnas snake_case de la BD a camelCase para el frontend
+    // CORREGIDO: Mapear columnas snake_case de la BD a camelCase para el frontend
     const maintenances = response.rows.map((item) => ({
       id: item.id,
       equipo: item.equipo,
       tipo: item.tipo,
-      fechaMantenimiento: item.fecha_mantenimiento,
+      fechaMantenimiento: item.fechamantenimiento,
       descripcion: item.descripcion,
       estado: item.estado,
       usuario: item.usuario,
-      fechaProximo: item.proximo_mantenimiento,
+      fechaProximo: item.fechaproximo,
       notas: item.notas,
     }));
 
