@@ -1,4 +1,4 @@
-const { query } = require('./utils/neon');
+const { query, setupDatabase } = require('./utils/db');
 
 exports.handler = async (event, context) => {
   try {
@@ -23,22 +23,17 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Crear tabla de mantenimientos si no existe
-    await query(`
-      CREATE TABLE IF NOT EXISTS maintenances (
-        id SERIAL PRIMARY KEY,
-        equipo TEXT NOT NULL,
-        tipo TEXT NOT NULL,
-        fecha_mantenimiento DATE NOT NULL,
-        descripcion TEXT,
-        estado TEXT NOT NULL,
-        usuario TEXT NOT NULL,
-        proximo_mantenimiento DATE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Tabla maintenances creada o verificada');
-
+    // Inicializar la base de datos usando la función setupDatabase
+    const setupResult = await setupDatabase();
+    
+    if (!setupResult.success) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Error al inicializar la base de datos', details: setupResult.error }),
+        headers: { 'Content-Type': 'application/json' }
+      };
+    }
+    
     // Crear índices para búsquedas comunes
     await query('CREATE INDEX IF NOT EXISTS idx_maintenances_equipo ON maintenances(equipo)');
     console.log('Índice idx_maintenances_equipo creado o verificado');
@@ -46,8 +41,8 @@ exports.handler = async (event, context) => {
     await query('CREATE INDEX IF NOT EXISTS idx_maintenances_usuario ON maintenances(usuario)');
     console.log('Índice idx_maintenances_usuario creado o verificado');
     
-    await query('CREATE INDEX IF NOT EXISTS idx_maintenances_fecha_proximo ON maintenances(proximo_mantenimiento)');
-    console.log('Índice idx_maintenances_fecha_proximo creado o verificado');
+    await query('CREATE INDEX IF NOT EXISTS idx_maintenances_fecha ON maintenances(fechaProximo)');
+    console.log('Índice idx_maintenances_fecha creado o verificado');
 
     return {
       statusCode: 200,

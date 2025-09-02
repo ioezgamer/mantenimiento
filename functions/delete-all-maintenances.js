@@ -1,4 +1,4 @@
-const { query } = require('./utils/neon');
+const { query } = require('./utils/db');
 
 exports.handler = async (event, context) => {
   try {

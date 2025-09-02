@@ -45,6 +45,9 @@
                     <p class="text-gray-600">Control y seguimiento de mantenimientos de equipos de cómputo</p>
                 </div>
                 <div class="flex space-x-3">
+                    <button onclick="setupDatabase()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-md">
+                        🔧 Configurar BD
+                    </button>
                     <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-md">
                         💾 Exportar Datos
                     </button>
@@ -234,7 +237,7 @@
             UPDATE: id => `/.netlify/functions/update-maintenance/${id}`,
             DELETE: id => `/.netlify/functions/delete-maintenance/${id}`,
             DELETE_ALL: '/.netlify/functions/delete-all-maintenances',
-            SETUP: '/.netlify/functions/setup-db?key=' + encodeURIComponent(prompt('Ingrese la clave de configuración:') || '')
+            SETUP: key => `/.netlify/functions/setup-db?key=${encodeURIComponent(key)}`
         };
         
         // Cargar datos desde la API
@@ -297,6 +300,24 @@
             try {
                 // Verificar si hay datos
                 const response = await fetch(API_URL.GET_ALL);
+                
+                // Si hay un error 500, puede que la tabla no exista
+                if (response.status === 500) {
+                    const setupKey = prompt('Por favor, ingrese la clave de configuración para inicializar la base de datos:');
+                    if (setupKey) {
+                        // Intentar configurar la base de datos
+                        const setupResponse = await fetch(API_URL.SETUP(setupKey));
+                        if (setupResponse.ok) {
+                            alert('Base de datos inicializada correctamente. La aplicación se recargará.');
+                            window.location.reload();
+                            return;
+                        } else {
+                            alert('Error al inicializar la base de datos. Clave incorrecta o problema de conexión.');
+                        }
+                    }
+                    return;
+                }
+                
                 if (!response.ok) {
                     throw new Error('Error al verificar datos');
                 }
@@ -323,6 +344,31 @@
         
         // Intentar inicializar la base de datos después de cargar
         setTimeout(initializeDatabase, 1000);
+        
+        // Función para configurar la base de datos manualmente
+        async function setupDatabase() {
+            const setupKey = prompt('Por favor, ingrese la clave de configuración para inicializar la base de datos:');
+            if (!setupKey) return;
+            
+            try {
+                document.body.style.cursor = 'wait';
+                const setupResponse = await fetch(API_URL.SETUP(setupKey));
+                
+                if (setupResponse.ok) {
+                    const result = await setupResponse.json();
+                    alert('Base de datos configurada correctamente: ' + result.message);
+                    window.location.reload();
+                } else {
+                    const error = await setupResponse.json();
+                    alert('Error al configurar la base de datos: ' + (error.error || 'Clave incorrecta o problema de conexión'));
+                }
+            } catch (error) {
+                console.error('Error al configurar la base de datos:', error);
+                alert('Error al configurar la base de datos: ' + error.message);
+            } finally {
+                document.body.style.cursor = 'default';
+            }
+        }
 
         function getUniqueValues() {
             const equipos = new Set();
@@ -726,7 +772,7 @@
                                 // Eliminar todos los registros existentes y crear los nuevos
                                 try {
                                     // Usar el nuevo endpoint DELETE_ALL para eliminar todos los registros
-                                    const setupKey = prompt('Ingrese la clave de configuración para eliminar todos los registros:');
+                                    const setupKey = prompt('Ingrese la clave de seguridad para confirmar la eliminación de todos los registros:');
                                     if (!setupKey) {
                                         document.body.style.cursor = 'default';
                                         return;

@@ -3,7 +3,7 @@ require('dotenv').config();
 const { Pool } = require('pg');
 
 // Opciones de conexión desde variables de entorno
-const connectionString = process.env.NEON_DATABASE_URL || null;
+const connectionString = process.env.DATABASE_URL || null;
 
 // Configuración del pool de conexiones
 const pool = connectionString 
