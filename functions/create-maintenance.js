@@ -1,4 +1,4 @@
-import { query } from "./utils/db.js"; // Cambia require a import por ES Modules
+const { query } = require("./utils/neon.js");
 
 exports.handler = async (event, context) => {
   try {
