@@ -1,9 +1,9 @@
-const { q, client } = require('./utils/fauna');
+const { query } = require('./utils/neon');
 
 exports.handler = async (event, context) => {
   try {
-    // Verificar que el método sea POST y que tenga una clave de seguridad
-    if (event.httpMethod !== 'POST') {
+    // Verificar que el método sea GET y que tenga una clave de seguridad
+    if (event.httpMethod !== 'GET') {
       return {
         statusCode: 405,
         body: JSON.stringify({ error: 'Método no permitido' }),
@@ -11,9 +11,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Verificar clave de seguridad (esto debería ser más seguro en producción)
-    const data = JSON.parse(event.body || '{}');
-    if (data.setupKey !== process.env.SETUP_KEY) {
+    // Verificar clave de seguridad
+    const params = event.queryStringParameters;
+    const setupKey = params && params.key;
+    
+    if (!setupKey || setupKey !== process.env.SETUP_KEY) {
       return {
         statusCode: 401,
         body: JSON.stringify({ error: 'No autorizado' }),
@@ -21,38 +23,31 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Crear la colección para mantenimientos si no existe
-    try {
-      await client.query(q.CreateCollection({ name: 'maintenances' }));
-      console.log('Colección maintenances creada');
-    } catch (err) {
-      // Si la colección ya existe, ignorar el error
-      if (err.name !== 'BadRequest') {
-        throw err;
-      }
-      console.log('La colección maintenances ya existe');
-    }
+    // Crear tabla de mantenimientos si no existe
+    await query(`
+      CREATE TABLE IF NOT EXISTS maintenances (
+        id SERIAL PRIMARY KEY,
+        equipo TEXT NOT NULL,
+        tipo TEXT NOT NULL,
+        fecha_mantenimiento DATE NOT NULL,
+        descripcion TEXT,
+        estado TEXT NOT NULL,
+        usuario TEXT NOT NULL,
+        proximo_mantenimiento DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Tabla maintenances creada o verificada');
 
     // Crear índices para búsquedas comunes
-    const indices = [
-      { name: 'maintenances_by_equipo', source: 'maintenances', terms: [{ field: ['data', 'equipo'] }] },
-      { name: 'maintenances_by_usuario', source: 'maintenances', terms: [{ field: ['data', 'usuario'] }] },
-      { name: 'maintenances_by_fecha_proximo', source: 'maintenances', terms: [{ field: ['data', 'fechaProximo'] }] }
-    ];
-
-    // Crear cada índice si no existe
-    for (const indexDef of indices) {
-      try {
-        await client.query(q.CreateIndex(indexDef));
-        console.log(`Índice ${indexDef.name} creado`);
-      } catch (err) {
-        // Si el índice ya existe, ignorar el error
-        if (err.name !== 'BadRequest') {
-          throw err;
-        }
-        console.log(`El índice ${indexDef.name} ya existe`);
-      }
-    }
+    await query('CREATE INDEX IF NOT EXISTS idx_maintenances_equipo ON maintenances(equipo)');
+    console.log('Índice idx_maintenances_equipo creado o verificado');
+    
+    await query('CREATE INDEX IF NOT EXISTS idx_maintenances_usuario ON maintenances(usuario)');
+    console.log('Índice idx_maintenances_usuario creado o verificado');
+    
+    await query('CREATE INDEX IF NOT EXISTS idx_maintenances_fecha_proximo ON maintenances(proximo_mantenimiento)');
+    console.log('Índice idx_maintenances_fecha_proximo creado o verificado');
 
     return {
       statusCode: 200,

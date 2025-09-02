@@ -1,13 +1,13 @@
-# Aplicación de Mantenimiento con FaunaDB y Netlify
+# Aplicación de Mantenimiento con Neon DB y Netlify
 
-Esta aplicación permite gestionar registros de mantenimiento utilizando FaunaDB como base de datos y Netlify para el despliegue y alojamiento.
+Esta aplicación permite gestionar registros de mantenimiento utilizando Neon DB como base de datos PostgreSQL y Netlify para el despliegue y alojamiento.
 
 ## Características
 
 - Gestión completa de registros de mantenimiento (crear, leer, actualizar, eliminar)
-- Persistencia de datos con FaunaDB a través de funciones serverless de Netlify
+- Persistencia de datos con Neon DB (PostgreSQL) a través de funciones serverless de Netlify
 - Exportación e importación de datos en formato JSON
-- Estadísticas de mantenimiento
+- Estadísticas de mantenimiento y estado de tareas
 - Filtrado y búsqueda de registros
 - Interfaz responsiva con Tailwind CSS
 
@@ -16,30 +16,30 @@ Esta aplicación permite gestionar registros de mantenimiento utilizando FaunaDB
 ### Requisitos previos
 
 1. Cuenta en [Netlify](https://www.netlify.com/)
-2. Cuenta en [FaunaDB](https://fauna.com/)
+2. Cuenta en [Neon DB](https://neon.tech/)
 
 ### Pasos para configurar
 
-1. **Crear una base de datos en FaunaDB**:
-   - Regístrate o inicia sesión en [FaunaDB](https://fauna.com/)
-   - Crea una nueva base de datos
-   - Ve a "Security" y crea una nueva clave con permisos de servidor
-   - Guarda la clave secreta generada
+1. **Crear una base de datos en Neon DB**:
+   - Regístrate o inicia sesión en [Neon DB](https://neon.tech/)
+   - Crea un nuevo proyecto
+   - Obtén la cadena de conexión (connection string) desde el panel de control
+   - Guarda la cadena de conexión para usarla más adelante
 
 2. **Configurar variables de entorno en Netlify**:
    - Despliega tu proyecto en Netlify
    - Ve a la configuración del sitio > Build & deploy > Environment variables
    - Añade las siguientes variables:
-     - `FAUNA_SECRET`: Tu clave secreta de FaunaDB
+     - `DATABASE_URL`: Tu cadena de conexión de Neon DB
      - `SETUP_KEY`: Una clave personalizada para proteger la configuración inicial (ej: "mi-clave-secreta")
 
 3. **Inicializar la base de datos**:
    - Una vez desplegada la aplicación, visita: `https://tu-sitio-netlify.netlify.app/.netlify/functions/setup-db?key=tu-clave-secreta`
-   - Esto creará la colección y los índices necesarios en FaunaDB
+   - Esto creará la tabla necesaria en Neon DB
 
 4. **Acceder a la aplicación**:
    - Visita la URL de tu sitio en Netlify
-   - La aplicación cargará automáticamente y se conectará a FaunaDB
+   - La aplicación cargará automáticamente y se conectará a Neon DB
 
 ## Desarrollo local
 
@@ -47,7 +47,7 @@ Para ejecutar la aplicación en modo desarrollo:
 
 1. Clona este repositorio
 2. Instala las dependencias: `npm install`
-3. Crea un archivo `.env` en la raíz con las variables `FAUNA_SECRET` y `SETUP_KEY`
+3. Crea un archivo `.env` en la raíz con las variables `DATABASE_URL` y `SETUP_KEY`
 4. Instala Netlify CLI: `npm install -g netlify-cli`
 5. Ejecuta: `netlify dev`
 
@@ -62,9 +62,10 @@ Para ejecutar la aplicación en modo desarrollo:
   - `create-maintenance.js`: Crea un nuevo registro
   - `update-maintenance.js`: Actualiza un registro existente
   - `delete-maintenance.js`: Elimina un registro
+  - `delete-all-maintenances.js`: Elimina todos los registros (requiere clave de configuración)
   - `setup-db.js`: Configura la base de datos
   - `/utils`: Utilidades compartidas
-    - `fauna.js`: Configuración del cliente de FaunaDB
+    - `db.js`: Configuración del cliente de Neon DB (PostgreSQL)
 
 ## Licencia
 

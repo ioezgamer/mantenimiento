@@ -1,14 +1,17 @@
 {
   "name": "mantenimiento-app",
   "version": "1.0.0",
-  "description": "Aplicación para gestionar mantenimientos de equipos de cómputo con Netlify y FaunaDB",
-  "main": "index.html",
+  "description": "Aplicación para gestionar mantenimientos de equipos de cómputo con Netlify y Neon DB"
+  ,"main": "index.html",
+
+
   "scripts": {
     "dev": "netlify dev"
   },
   "dependencies": {
-    "faunadb": "^4.8.0",
-    "dotenv": "^16.3.1"
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "postgres": "^3.4.3"
   },
   "devDependencies": {
     "netlify-cli": "^15.0.0"

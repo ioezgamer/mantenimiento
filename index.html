@@ -131,11 +131,11 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N°</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">En uso por</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programa</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Actual</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tareas Realizadas</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Próximo Mant.</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Realizado por</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
@@ -175,13 +175,13 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Programa</label>
-                        <div class="relative">
-                            <select id="programaSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                                <option value="">Seleccionar programa...</option>
-                            </select>
-                            <input type="text" id="programaInput" placeholder="O escribir nuevo programa..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-2">
-                        </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Mantenimiento</label>
+                        <select id="tipoSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="Preventivo">Preventivo</option>
+                            <option value="Correctivo">Correctivo</option>
+                            <option value="Predictivo">Predictivo</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de mantenimiento actual</label>
@@ -193,18 +193,18 @@
                         <p class="text-xs text-gray-500 mt-1">Se calcula automáticamente (+4 meses)</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mantenimiento realizado por</label>
-                        <div class="relative">
-                            <select id="realizadoPorSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                                <option value="">Seleccionar técnico...</option>
-                            </select>
-                            <input type="text" id="realizadoPorInput" placeholder="O escribir nuevo técnico..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-2">
-                        </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <select id="estadoSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="">Seleccionar estado...</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Progreso">En Progreso</option>
+                        </select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tareas de mantenimiento realizadas</label>
-                    <textarea id="tareas" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Describe las tareas realizadas..."></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción de tareas</label>
+                    <textarea id="descripcion" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Describe las tareas realizadas..."></textarea>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
@@ -226,14 +226,15 @@
         let maintenances = [];
         let editingId = null;
         
-        // API URLs para las funciones serverless
+        // API URLs para las funciones serverless (Neon DB)
         const API_URL = {
             GET_ALL: '/.netlify/functions/get-maintenances',
             GET_ONE: id => `/.netlify/functions/get-maintenance/${id}`,
             CREATE: '/.netlify/functions/create-maintenance',
             UPDATE: id => `/.netlify/functions/update-maintenance/${id}`,
             DELETE: id => `/.netlify/functions/delete-maintenance/${id}`,
-            SETUP: '/.netlify/functions/setup-db'
+            DELETE_ALL: '/.netlify/functions/delete-all-maintenances',
+            SETUP: '/.netlify/functions/setup-db?key=' + encodeURIComponent(prompt('Ingrese la clave de configuración:') || '')
         };
         
         // Cargar datos desde la API
@@ -243,7 +244,18 @@
                 if (!response.ok) {
                     throw new Error('Error al cargar los datos');
                 }
-                maintenances = await response.json();
+                const data = await response.json();
+                maintenances = data.map(item => ({
+                    id: item.id,
+                    equipo: item.equipo,
+                    usuario: item.usuario,
+                    tipo: item.tipo,
+                    fechaMantenimiento: item.fechaMantenimiento,
+                    descripcion: item.descripcion,
+                    estado: item.estado,
+                    fechaProximo: item.fechaProximo,
+                    notas: item.notas
+                }));
                 renderTable();
                 updateStats();
                 populateDropdowns();
@@ -261,21 +273,21 @@
             {
                 equipo: 'PC-001 Dell OptiPlex',
                 usuario: 'Juan Pérez',
-                programa: 'Contabilidad',
-                fechaActual: '2024-01-15',
-                tareas: 'Limpieza interna, actualización de drivers, verificación de disco duro',
+                tipo: 'Preventivo',
+                fechaMantenimiento: '2024-01-15',
+                descripcion: 'Limpieza interna, actualización de drivers, verificación de disco duro',
+                estado: 'Completado',
                 fechaProximo: '2024-04-15',
-                realizadoPor: 'Carlos Rodríguez',
                 notas: 'Equipo en buen estado general'
             },
             {
                 equipo: 'LAPTOP-002 HP ProBook',
                 usuario: 'María González',
-                programa: 'Recursos Humanos',
-                fechaActual: '2024-01-20',
-                tareas: 'Limpieza de ventiladores, optimización de sistema, backup de datos',
+                tipo: 'Correctivo',
+                fechaMantenimiento: '2024-01-20',
+                descripcion: 'Limpieza de ventiladores, optimización de sistema, backup de datos',
+                estado: 'Pendiente',
                 fechaProximo: '2024-04-20',
-                realizadoPor: 'Ana Martínez',
                 notas: 'Batería al 85% de capacidad'
             }
         ];
@@ -312,20 +324,34 @@
         // Intentar inicializar la base de datos después de cargar
         setTimeout(initializeDatabase, 1000);
 
-        function getUniqueValues(field) {
-            return [...new Set(maintenances.map(m => m[field]).filter(value => value && value.trim() !== ''))].sort();
+        function getUniqueValues() {
+            const equipos = new Set();
+            const usuarios = new Set();
+            const tipos = new Set(['Preventivo', 'Correctivo', 'Predictivo']);
+            const estados = new Set(['Completado', 'Pendiente', 'En Progreso']);
+            
+            maintenances.forEach(item => {
+                if (item.equipo) equipos.add(item.equipo);
+                if (item.usuario) usuarios.add(item.usuario);
+                if (item.tipo) tipos.add(item.tipo);
+                if (item.estado) estados.add(item.estado);
+            });
+            
+            return {
+                equipos: [...equipos].sort(),
+                usuarios: [...usuarios].sort(),
+                tipos: [...tipos].sort(),
+                estados: [...estados].sort()
+            };
         }
 
         function populateDropdowns() {
-            const equipos = getUniqueValues('equipo');
-            const usuarios = getUniqueValues('usuario');
-            const programas = getUniqueValues('programa');
-            const tecnicos = getUniqueValues('realizadoPor');
-
-            populateSelect('equipoSelect', equipos);
-            populateSelect('usuarioSelect', usuarios);
-            populateSelect('programaSelect', programas);
-            populateSelect('realizadoPorSelect', tecnicos);
+            const uniqueValues = getUniqueValues();
+            
+            populateSelect('equipoSelect', uniqueValues.equipos);
+            populateSelect('usuarioSelect', uniqueValues.usuarios);
+            populateSelect('tipoSelect', uniqueValues.tipos);
+            populateSelect('estadoSelect', uniqueValues.estados);
         }
 
         function populateSelect(selectId, values) {
@@ -382,30 +408,6 @@
                 }
             });
 
-            // Manejar selección de programas
-            document.getElementById('programaSelect').addEventListener('change', function() {
-                const input = document.getElementById('programaInput');
-                if (this.value) {
-                    input.value = this.value;
-                    input.style.display = 'none';
-                } else {
-                    input.style.display = 'block';
-                    input.focus();
-                }
-            });
-
-            // Manejar selección de técnicos
-            document.getElementById('realizadoPorSelect').addEventListener('change', function() {
-                const input = document.getElementById('realizadoPorInput');
-                if (this.value) {
-                    input.value = this.value;
-                    input.style.display = 'none';
-                } else {
-                    input.style.display = 'block';
-                    input.focus();
-                }
-            });
-
             // Mostrar input cuando se hace clic en él
             document.getElementById('equipoInput').addEventListener('focus', function() {
                 document.getElementById('equipoSelect').value = '';
@@ -413,14 +415,6 @@
 
             document.getElementById('usuarioInput').addEventListener('focus', function() {
                 document.getElementById('usuarioSelect').value = '';
-            });
-
-            document.getElementById('programaInput').addEventListener('focus', function() {
-                document.getElementById('programaSelect').value = '';
-            });
-
-            document.getElementById('realizadoPorInput').addEventListener('focus', function() {
-                document.getElementById('realizadoPorSelect').value = '';
             });
 
             // Calcular fecha próximo mantenimiento automáticamente
@@ -452,17 +446,12 @@
                 document.getElementById('usuarioInput').value = maintenance.usuario;
                 document.getElementById('usuarioInput').style.display = maintenance.usuario ? 'none' : 'block';
                 
-                document.getElementById('programaSelect').value = maintenance.programa;
-                document.getElementById('programaInput').value = maintenance.programa;
-                document.getElementById('programaInput').style.display = maintenance.programa ? 'none' : 'block';
+                document.getElementById('tipoSelect').value = maintenance.tipo;
                 
-                document.getElementById('realizadoPorSelect').value = maintenance.realizadoPor;
-                document.getElementById('realizadoPorInput').value = maintenance.realizadoPor;
-                document.getElementById('realizadoPorInput').style.display = maintenance.realizadoPor ? 'none' : 'block';
-                
-                document.getElementById('fechaActual').value = maintenance.fechaActual;
-                document.getElementById('tareas').value = maintenance.tareas;
+                document.getElementById('fechaActual').value = maintenance.fechaMantenimiento;
+                document.getElementById('descripcion').value = maintenance.descripcion;
                 document.getElementById('fechaProximo').value = maintenance.fechaProximo;
+                document.getElementById('estadoSelect').value = maintenance.estado;
                 document.getElementById('notas').value = maintenance.notas;
             } else {
                 title.textContent = 'Nuevo Mantenimiento';
@@ -558,7 +547,8 @@
             let filteredMaintenances = maintenances.filter(m => {
                 const matchesSearch = m.equipo.toLowerCase().includes(searchTerm) ||
                                     m.usuario.toLowerCase().includes(searchTerm) ||
-                                    m.programa.toLowerCase().includes(searchTerm);
+                                    (m.programa && m.programa.toLowerCase().includes(searchTerm)) ||
+                                    (m.descripcion && m.descripcion.toLowerCase().includes(searchTerm));
                 
                 const status = getStatusClass(m.fechaProximo);
                 const matchesStatus = !statusFilter || status === statusFilter;
@@ -571,16 +561,16 @@
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">${index + 1}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${m.equipo}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${m.usuario}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${m.programa}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${new Date(m.fechaActual).toLocaleDateString('es-ES')}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.tareas}">${m.tareas}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${m.tipo || m.programa}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${new Date(m.fechaMantenimiento || m.fechaActual).toLocaleDateString('es-ES')}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.descripcion || m.tareas}">${m.descripcion || m.tareas}</td>
                     <td class="px-4 py-3 text-sm">
                         <div class="flex flex-col">
                             <span class="text-gray-900">${new Date(m.fechaProximo).toLocaleDateString('es-ES')}</span>
                             ${getStatusBadge(m.fechaProximo)}
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${m.realizadoPor}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${m.estado || m.realizadoPor}</td>
                     <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${m.notas}">${m.notas}</td>
                     <td class="px-4 py-3 text-sm">
                         <div class="flex space-x-2">
@@ -614,6 +604,11 @@
                 return nextDate < today;
             }).length;
             
+            // Mantenimientos por estado
+            const completados = maintenances.filter(m => m.estado === 'Completado').length;
+            const pendientes = maintenances.filter(m => m.estado === 'Pendiente').length;
+            const enProgreso = maintenances.filter(m => m.estado === 'En Progreso').length;
+            
             document.getElementById('proximosMantenimientos').textContent = proximos;
             document.getElementById('mantenimientosVencidos').textContent = vencidos;
         }
@@ -625,11 +620,11 @@
             const formData = {
                 equipo: document.getElementById('equipoInput').value || document.getElementById('equipoSelect').value,
                 usuario: document.getElementById('usuarioInput').value || document.getElementById('usuarioSelect').value,
-                programa: document.getElementById('programaInput').value || document.getElementById('programaSelect').value,
-                fechaActual: document.getElementById('fechaActual').value,
-                tareas: document.getElementById('tareas').value,
+                tipo: document.getElementById('tipoSelect').value,
+                fechaMantenimiento: document.getElementById('fechaActual').value,
+                descripcion: document.getElementById('descripcion').value,
                 fechaProximo: document.getElementById('fechaProximo').value,
-                realizadoPor: document.getElementById('realizadoPorInput').value || document.getElementById('realizadoPorSelect').value,
+                estado: document.getElementById('estadoSelect').value,
                 notas: document.getElementById('notas').value
             };
 
@@ -730,19 +725,19 @@
                                 
                                 // Eliminar todos los registros existentes y crear los nuevos
                                 try {
-                                    // Obtener todos los registros actuales
-                                    const currentResponse = await fetch(API_URL.GET_ALL);
-                                    if (!currentResponse.ok) {
-                                        throw new Error('Error al obtener datos actuales');
+                                    // Usar el nuevo endpoint DELETE_ALL para eliminar todos los registros
+                                    const setupKey = prompt('Ingrese la clave de configuración para eliminar todos los registros:');
+                                    if (!setupKey) {
+                                        document.body.style.cursor = 'default';
+                                        return;
                                     }
                                     
-                                    const currentData = await currentResponse.json();
+                                    const deleteResponse = await fetch(`${API_URL.DELETE_ALL}?key=${encodeURIComponent(setupKey)}`, {
+                                        method: 'DELETE'
+                                    });
                                     
-                                    // Eliminar todos los registros actuales
-                                    for (const item of currentData) {
-                                        await fetch(API_URL.DELETE(item.id), {
-                                            method: 'DELETE'
-                                        });
+                                    if (!deleteResponse.ok) {
+                                        throw new Error('Error al eliminar datos actuales');
                                     }
                                     
                                     // Crear los nuevos registros
@@ -750,10 +745,20 @@
                                         // Eliminar el ID si existe para que la API asigne uno nuevo
                                         const { id, ...dataWithoutId } = item;
                                         
+                                        // Adaptar el formato si es necesario (para compatibilidad con datos antiguos)
+                                        const newItem = {
+                                            ...dataWithoutId,
+                                            tipo: dataWithoutId.tipo || 'Preventivo',
+                                            fechaMantenimiento: dataWithoutId.fechaMantenimiento || dataWithoutId.fechaActual,
+                                            descripcion: dataWithoutId.descripcion || dataWithoutId.tareas,
+                                            estado: dataWithoutId.estado || 'Completado',
+                                            notas: dataWithoutId.notas || ''
+                                        };
+                                        
                                         await fetch(API_URL.CREATE, {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(dataWithoutId)
+                                            body: JSON.stringify(newItem)
                                         });
                                     }
                                     

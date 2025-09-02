@@ -1,4 +1,4 @@
-const { q, client } = require('./utils/fauna');
+const { query } = require('./utils/neon');
 
 exports.handler = async (event, context) => {
   try {
@@ -21,12 +21,18 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Eliminar el registro en FaunaDB
-    await client.query(
-      q.Delete(
-        q.Ref(q.Collection('maintenances'), id)
-      )
-    );
+    // Verificar si el mantenimiento existe
+    const checkResult = await query('SELECT id FROM maintenances WHERE id = $1', [id]);
+    if (checkResult.rows.length === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Mantenimiento no encontrado' }),
+        headers: { 'Content-Type': 'application/json' }
+      };
+    }
+
+    // Eliminar el registro en Neon DB
+    await query('DELETE FROM maintenances WHERE id = $1', [id]);
 
     // Devolver respuesta exitosa
     return {
@@ -37,18 +43,9 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error('Error al eliminar mantenimiento:', error);
     
-    // Verificar si el error es porque el documento no existe
-    if (error.name === 'NotFound') {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: 'Mantenimiento no encontrado' }),
-        headers: { 'Content-Type': 'application/json' }
-      };
-    }
-    
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error al eliminar el mantenimiento' }),
+      body: JSON.stringify({ error: 'Error al eliminar el mantenimiento', details: error.message }),
       headers: { 'Content-Type': 'application/json' }
     };
   }

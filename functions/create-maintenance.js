@@ -1,4 +1,4 @@
-const { q, client } = require('./utils/fauna');
+const { query } = require('./utils/neon');
 
 exports.handler = async (event, context) => {
   try {
@@ -15,7 +15,7 @@ exports.handler = async (event, context) => {
     const data = JSON.parse(event.body);
 
     // Validar datos requeridos
-    if (!data.equipo || !data.usuario || !data.fechaActual || !data.fechaProximo || !data.realizadoPor) {
+    if (!data.equipo || !data.tipo || !data.fechaMantenimiento || !data.estado || !data.usuario) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Faltan campos requeridos' }),
@@ -23,20 +23,37 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Crear el registro en FaunaDB
-    const result = await client.query(
-      q.Create(
-        q.Collection('maintenances'),
-        { data }
-      )
+    // Crear el registro en Neon DB
+    const result = await query(
+      `INSERT INTO maintenances 
+      (equipo, tipo, fecha_mantenimiento, descripcion, estado, usuario, proximo_mantenimiento) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      RETURNING *`,
+      [
+        data.equipo,
+        data.tipo,
+        data.fechaMantenimiento,
+        data.descripcion || '',
+        data.estado,
+        data.usuario,
+        data.fechaProximo
+      ]
     );
+
+    const newItem = result.rows[0];
 
     // Devolver el registro creado con su ID
     return {
       statusCode: 201,
       body: JSON.stringify({
-        id: result.ref.id,
-        ...data
+        id: newItem.id,
+        equipo: newItem.equipo,
+        tipo: newItem.tipo,
+        fechaMantenimiento: newItem.fecha_mantenimiento,
+        descripcion: newItem.descripcion,
+        estado: newItem.estado,
+        usuario: newItem.usuario,
+        fechaProximo: newItem.proximo_mantenimiento
       }),
       headers: { 'Content-Type': 'application/json' }
     };
@@ -44,7 +61,7 @@ exports.handler = async (event, context) => {
     console.error('Error al crear mantenimiento:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error al crear el mantenimiento' }),
+      body: JSON.stringify({ error: 'Error al crear el mantenimiento', details: error.message }),
       headers: { 'Content-Type': 'application/json' }
     };
   }

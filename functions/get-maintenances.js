@@ -1,19 +1,20 @@
-const { q, client } = require('./utils/fauna');
+const { query } = require('./utils/neon');
 
 exports.handler = async (event, context) => {
   try {
-    // Consultar todos los mantenimientos en la colección
-    const response = await client.query(
-      q.Map(
-        q.Paginate(q.Documents(q.Collection('maintenances'))),
-        q.Lambda('ref', q.Get(q.Var('ref')))
-      )
-    );
+    // Consultar todos los mantenimientos en la tabla
+    const response = await query('SELECT * FROM maintenances ORDER BY fecha_mantenimiento DESC');
 
     // Formatear los datos para la respuesta
-    const maintenances = response.data.map(item => ({
-      id: item.ref.id,
-      ...item.data
+    const maintenances = response.rows.map(item => ({
+      id: item.id,
+      equipo: item.equipo,
+      tipo: item.tipo,
+      fechaMantenimiento: item.fecha_mantenimiento,
+      descripcion: item.descripcion,
+      estado: item.estado,
+      usuario: item.usuario,
+      fechaProximo: item.proximo_mantenimiento
     }));
 
     return {
