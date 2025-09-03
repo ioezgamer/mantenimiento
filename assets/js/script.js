@@ -291,5 +291,23 @@ async function importData() {
   input.click();
 }
 
+async function loadData() {
+  try {
+    const response = await fetch(API_URL.GET_ALL);
+    if (!response.ok) {
+      throw new Error("Error al cargar los mantenimientos");
+    }
+    maintenances = await response.json();
+    renderTable();
+    updateStats();
+  } catch (error) {
+    console.error("Error al cargar los datos:", error);
+    alert("Error al cargar los datos: " + error.message);
+  }
+}
+
 // Inicializar manejadores del formulario
 setupFormHandlers();
+
+// Cargar datos al iniciar la aplicación
+loadData();

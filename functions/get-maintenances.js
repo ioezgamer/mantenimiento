@@ -12,11 +12,11 @@ exports.handler = async (event, context) => {
       id: item.id,
       equipo: item.equipo,
       tipo: item.tipo,
-      fechaMantenimiento: item.fechamantenimiento,
+      fechaMantenimiento: new Date(item.fechamantenimiento).toISOString().split('T')[0],
       descripcion: item.descripcion,
       estado: item.estado,
       usuario: item.usuario,
-      fechaProximo: item.fechaproximo,
+      fechaProximo: new Date(item.fechaproximo).toISOString().split('T')[0],
       notas: item.notas,
     }));
 
