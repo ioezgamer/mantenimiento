@@ -30,7 +30,7 @@ exports.handler = async (event, context) => {
     // CORREGIDO: Nombres de columna coinciden con la tabla de la base de datos (ej. fechamantenimiento, fechaproximo)
     const result = await query(
       `INSERT INTO maintenances 
-      (equipo, tipo, fechamantenimiento, descripcion, estado, usuario, fechaproximo, notas) 
+      (equipo, tipo, "fechaMantenimiento", descripcion, estado, usuario, "fechaProximo", notas) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
       RETURNING *`,
       [
