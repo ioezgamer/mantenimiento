@@ -30,7 +30,7 @@ exports.handler = async (event, context) => {
     // CORREGIDO: Nombres de columna coinciden con la tabla de la base de datos (ej. fechamantenimiento, fechaproximo)
     const result = await query(
       `INSERT INTO maintenances 
-      (equipo, tipo, "fechaMantenimiento", descripcion, estado, usuario, "fechaProximo", notas) 
+      (equipo, tipo, fechamantenimiento, descripcion, estado, usuario, fechaproximo, notas) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
       RETURNING *`,
       [
@@ -54,11 +54,11 @@ exports.handler = async (event, context) => {
         id: newItem.id,
         equipo: newItem.equipo,
         tipo: newItem.tipo,
-        fechaMantenimiento: newItem.fechamantenimiento,
+        fechaMantenimiento: newItem.fechaMantenimiento,
         descripcion: newItem.descripcion,
         estado: newItem.estado,
         usuario: newItem.usuario,
-        fechaProximo: newItem.fechaproximo,
+        fechaProximo: newItem.fechaProximo,
         notas: newItem.notas,
       }),
       headers: { "Content-Type": "application/json" },
